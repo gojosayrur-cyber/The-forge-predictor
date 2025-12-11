@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Forge Tool</title>
+<meta charset="UTF-8">
+<style>
+body{background:#0d0d0d;color:white;font-family:Arial;padding:20px}
+input,button,textarea{width:100%;padding:10px;margin:10px 0;border:none;border-radius:6px}
+button{background:#ff6600;color:white;font-weight:bold;cursor:pointer}
+h2{margin-top:30px}
+.box{background:#1a1a1a;padding:20px;border-radius:10px;margin-top:20px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.itemBox{background:#1f1f1f;padding:10px;border-radius:8px}
+.itemBox label{font-size:14px}
+.itemBox input{margin-top:5px}
+</style>
+</head>
+<body>
+
+<h1>The Forge – Full Ore UI + Predictor</h1>
+
+<h2>Ore Amount Input</h2>
+<div class="grid">
+  <div class="itemBox"><label>Poopite</label><input id="Poopite" type="number" value="0"></div>
+  <div class="itemBox"><label>Obsidian</label><input id="Obsidian" type="number" value="0"></div>
+  <div class="itemBox"><label>Rivalite</label><input id="Rivalite" type="number" value="0"></div>
+  <div class="itemBox"><label>Uranium</label><input id="Uranium" type="number" value="0"></div>
+  <div class="itemBox"><label>Mythril</label><input id="Mythril" type="number" value="0"></div>
+  <div class="itemBox"><label>Eye Ore</label><input id="Eye Ore" type="number" value="0"></div>
+  <div class="itemBox"><label>Fireite</label><input id="Fireite" type="number" value="0"></div>
+  <div class="itemBox"><label>Magmaite</label><input id="Magmaite" type="number" value="0"></div>
+  <div class="itemBox"><label>Lightite</label><input id="Lightite" type="number" value="0"></div>
+  <div class="itemBox"><label>Demonite</label><input id="Demonite" type="number" value="0"></div>
+  <div class="itemBox"><label>Darkryte</label><input id="Darkryte" type="number" value="0"></div>
+  <div class="itemBox"><label>Stone</label><input id="Stone" type="number" value="0"></div>
+  <div class="itemBox"><label>Sand Stone</label><input id="Sand Stone" type="number" value="0"></div>
+  <div class="itemBox"><label>Copper</label><input id="Copper" type="number" value="0"></div>
+  <div class="itemBox"><label>Iron</label><input id="Iron" type="number" value="0"></div>
+  <div class="itemBox"><label>Cobalt</label><input id="Cobalt" type="number" value="0"></div>
+  <div class="itemBox"><label>Titanium</label><input id="Titanium" type="number" value="0"></div>
+  <div class="itemBox"><label>Lapis Lazuli</label><input id="Lapis Lazuli" type="number" value="0"></div>
+  <div class="itemBox"><label>Volcanic Rock</label><input id="Volcanic Rock" type="number" value="0"></div>
+  <div class="itemBox"><label>Crystal Ore</label><input id="Crystal Ore" type="number" value="0"></div>
+</div>
+
+<button onclick="convertToText()">Convert To Text Format</button>
+
+<textarea id="input" rows="8" placeholder="hasil convert muncul di sini"></textarea>
+
+<button onclick="predict()">Predict Result</button>
+
+<div class="box">
+<h2>Result</h2>
+<div id="result"></div>
+</div>
+
+<script>
+const traits={
+"Magmaite":"AOE Explosion",
+"Fireite":"Burn Damage",
+"Darkryte":"Dodge Chance",
+"Demonite":"Burn When Hit",
+"Eye Ore":"+DMG but -HP",
+"Obsidian":"+30% HP/Defense",
+"Mythril":"+15% HP",
+"Poopite":"Poison Fear",
+"Lightite":"+Movement Speed",
+"Uranium":"HP AOE",
+"Rivalite":"Crit Chance"
+}
+
+const boost={
+"Magmaite":5,
+"Fireite":4,
+"Darkryte":6,
+"Demonite":4,
+"Eye Ore":3,
+"Obsidian":2,
+"Mythril":2,
+"Poopite":1,
+"Lightite":1,
+"Uranium":2,
+"Rivalite":3,
+"Ruby":1.2,
+"Emerald":1.2,
+"Cuprite":1.1
+}
+
+function convertToText(){
+ let ids=Object.keys(traits).concat([
+"Stone","Sand Stone","Copper","Iron","Cobalt","Titanium","Lapis Lazuli","Volcanic Rock","Crystal Ore"
+ ])
+ let out=""
+ ids.forEach(n=>{
+   let v=parseInt(document.getElementById(n).value)
+   if(v>0) out+=v+" "+n+"\n"
+ })
+ document.getElementById("input").value=out.trim()
+}
+
+function many(n){return n>=5}
+function small(n){return n<=2}
+
+function predict(){
+let lines=document.getElementById("input").value.trim().split("\n")
+let ores={}
+let totalPower=0
+let traitList=[]
+
+lines.forEach(l=>{
+let p=l.trim().split(" ")
+let amount=parseInt(p[0])
+let name=p.slice(1).join(" ")
+if(!ores[name]) ores[name]=0
+ores[name]+=amount
+if(traits[name]&&!traitList.includes(traits[name])) traitList.push(traits[name])
+if(boost[name]) totalPower+=boost[name]*amount
+})
+
+let item=""
+if(ores["Magmaite"]&&ores["Fireite"]) item="Explosive Weapon"
+if(ores["Darkryte"]&&(!ores["Magmaite"]||small(ores["Magmaite"]))) item="Darkryte Katana"
+if(ores["Rivalite"]&&many(ores["Rivalite"])) item="Crit Sword"
+if(ores["Eye Ore"]&&ores["Magmaite"]) item="DMG Hybrid Weapon"
+if(ores["Lightite"]&&many(ores["Lightite"])) item="Speed Armor"
+if(ores["Obsidian"]||ores["Mythril"]) item="Tank Armor"
+if(ores["Darkryte"]&&ores["Demonite"]) item="Dodge-Burn Armor"
+
+let base=Math.round(totalPower*10)
+if(traitList.includes("AOE Explosion")) base=Math.round(base*1.5)
+if(traitList.includes("Burn Damage")) base=Math.round(base*1.2)
+if(traitList.includes("Crit Chance")) base+=10
+if(traitList.includes("+DMG but -HP")) base=Math.round(base*1.15)
+
+document.getElementById("result").innerHTML=
+"<b>Predicted Item:</b> "+item+"<br><br>"+
+"<b>Traits:</b><br>"+traitList.join("<br>")+"<br><br>"+
+"<b>Estimated Power:</b> "+base
+}
+</script>
+
+<div class="box"><h2>Saran Pemakaian Ores</h2><h3>Rekomendasi Armor</h3><ul><li><b>Darkryte</b> – Dodge chance terbaik untuk armor late-game</li><li><b>Demonite</b> – Burn saat kena hit, cocok digabung Darkryte</li><li><b>Obsidian</b> – Tambahan defense/HP</li><li><b>Mythril</b> – Bonus HP tambahan</li><li><b>Lightite</b> – Movement speed build</li></ul><h3>Rekomendasi Senjata</h3><ul><li><b>Magmaite</b> – AOE explosion (S-Tier)</li><li><b>Fireite</b> – Burn damage</li><li><b>Darkryte</b> – Katana high damage</li><li><b>Eye Ore</b> – +DMG (tapi -HP)</li><li><b>Rivalite</b> – Crit build</li></ul></div></body>
+</html>
